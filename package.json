@@ -1,0 +1,38 @@
+{
+  "name": "triplet",
+  "version": "1.0.0",
+  "description": "Source-source transformer/parser for multiline strings, here-documents, python-style triple-quoted strings.",
+  "main": "index.js",
+  "bin": {
+    "triplet": "./cli.js"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "keywords": [
+    "triple",
+    "quotes",
+    "python",
+    "strings",
+    "multiline",
+    "here",
+    "document",
+    "parser",
+    "transformer"
+  ],
+  "config": {
+    "blanket": {
+      "pattern": "",
+      "data-cover-never": [
+        "node_modules",
+        "test"
+      ]
+    }
+  },
+  "author": "Simon Williams <simon@systemparadox.co.uk>",
+  "license": "ISC",
+  "devDependencies": {
+    "blanket": "^1.1.7",
+    "chai": "^2.3.0"
+  }
+}
