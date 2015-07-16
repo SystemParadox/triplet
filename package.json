@@ -1,7 +1,11 @@
 {
   "name": "triplet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Source-source transformer/parser for multiline strings, here-documents, python-style triple-quoted strings.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SystemParadox/triplet"
+  },
   "main": "index.js",
   "bin": {
     "triplet": "./cli.js"
