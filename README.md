@@ -24,22 +24,20 @@ without consideration for the starting indentation:
 
 ```
 function fail() {
-....return `
-........foo
-........bar
-....`;
+    return `
+        foo
+        bar
+    `;
 }
 
 // equivalent to
 function fail() {
-    return "\n........foo\n........bar\n....";
+    return "\n        foo\n        bar\n    ";
 }
 ```
 
-(spaces have been replaced with periods '.' for illustration)
-
 Notice the leading newline plus `n` levels of indentation, and trailing newline with `n-1` levels of indentation.
-In order words, a complete mess.
+In other words, a complete mess.
 
 With triplet, the indentation is taken into account:
 
@@ -80,22 +78,17 @@ The rules are as follows:
 - Any whitespace up to the first non-whitespace character is taken as the starting indentation
 - The starting indentation is removed from any subsequent lines
 - Any trailing whitespace after the last newline is removed
+- The final newline is preserved to allow easy concatenation, and avoids 'missing newline at end of file'
 
 ## Compatibility
 
 This is purposely designed to be simple as possible, with minimal knowledge of the language concerned.
-This means that you can use it with arbitrary other languages or language extensions:
-
-- sweetjs macros
-- es6/es7 transpilers
-- C
-- Java
-- Python
-
 It can be used for any language, provided it conforms to the following rules:
 
 - Strings begin with single-quotes `'`, double-quotes `"` or backticks `\'`
 - Round brackets `()`, square brackets `[]` and curly braces `{}` must be paired correctly
+
+Use it standalone for plain Javascript, or as an input preprocessor for sweetjs, 6to5, babel, etc. You could even use it for C or Java!
 
 ## Regular expressions
 
@@ -123,21 +116,21 @@ A huge thanks to the mozilla/sweet.js folks for their excellent work on this.
 
 ## Line numbers / source maps
 
-Triplet preserves line numbering such that source maps are unnecessary.
+Triplet preserves line numbering such that source maps should be unnecessary.
 Output strings are padded with newlines accordingly:
 
 ```
-    x = """
-        foo
-    """
+x = """
+    foo
+""";
 ```
 
 Becomes:
 
 ```
-    x = \n
-    \n
-    "foo\n"
+x =
+
+"foo\n";
 ```
 
 ## Command line
@@ -157,3 +150,7 @@ triplet(input, options);
 
 - Better stream support
 - Ensure sensible support for mixed tabs/spaces
+
+## Contributing
+
+All feedback, bug reports or pull requests will be much appreciated! Please open an issue on github.
