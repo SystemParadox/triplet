@@ -1,5 +1,5 @@
 var fs = require('fs');
-var util = require('util');
+var Regex = require('./regex');
 
 function assert(condition, message) {
     if (!condition) {
@@ -23,7 +23,6 @@ function parse(source, options) {
     var index = 0;
     var lineNumber = 1;
     var lineStart = index;
-    var output = [];
     var filename = options.filename || '<stdin>';
 
     function throwError(msg) {
@@ -85,7 +84,7 @@ function parse(source, options) {
         var ch;
         var blockComment = false;
         var lineComment = false;
-        var raw = ''
+        var raw = '';
 
         while (index < length) {
             ch = source[index];
@@ -173,7 +172,6 @@ function parse(source, options) {
         var str = '';
         var quote, start, ch;
         var triple = false;
-        var startLine = lineNumber;
 
         quote = source[index];
         var startQuote = quote;
@@ -254,9 +252,7 @@ function parse(source, options) {
     }
 
     function scanRegExp() {
-        var str, ch, start, pattern, flags, value, classMarker = false, restore, terminated = false;
-
-        buffer = null;
+        var str, ch, start, pattern, flags, value, classMarker = false, terminated = false;
 
         start = index;
         ch = source[index];
@@ -353,6 +349,7 @@ function parse(source, options) {
         var leadingComments = '';
         var chunk = '';
         var body = [];
+
         function pushChunk(x) {
             if (chunk.length > 0) {
                 var cc = {
@@ -370,9 +367,44 @@ function parse(source, options) {
                 body.push(x);
             }
         }
+
+        // lookback
+        function allowRegex() {
+            if (body.length < 1) {
+                return true;
+            }
+            var prev = body[body.length - 1];
+            switch (prev.type) {
+                case 'Chunk':
+                    var c = prev.raw[prev.raw.length - 1];
+                    if ('(,=:[!&|?{};'.indexOf(c) > -1) {
+                        return true;
+                    }
+                    return false;
+                case 'Block':
+                    if (prev.endCh == '}') {
+                        return true;
+                    }
+                    if (prev.endCh == ')') {
+                        if (body.length < 2) {
+                            return false;
+                        }
+                        var prev2 = body[body.length - 2];
+                        if (prev2.type == 'Keyword' && prev2.value == 'if') {
+                            return true;
+                        }
+                    }
+                    return false;
+                case 'Keyword':
+                    return (prev.value != 'this');
+                default:
+                    return false;
+            }
+        }
+
+        var ch;
         while (index < length) {
-            var ch = source[index];
-            var prevComment = leadingComments;
+            ch = source[index];
             var comment = skipComment();
             if (comment) {
                 if (chunk.length > 0) {
@@ -426,39 +458,6 @@ function parse(source, options) {
                     body: parseBody(']'),
                 });
             } else if (ch === '/') {
-                // lookback
-                function allowRegex() {
-                    if (body.length < 1) {
-                        return true;
-                    }
-                    var prev = body[body.length - 1];
-                    switch (prev.type) {
-                        case 'Chunk':
-                            var c = prev.raw[prev.raw.length - 1];
-                            if ('(,=:[!&|?{};'.indexOf(c) > -1) {
-                                return true;
-                            }
-                            return false;
-                        case 'Block':
-                            if (prev.endCh == '}') {
-                                return true;
-                            }
-                            if (prev.endCh == ')') {
-                                if (body.length < 2) {
-                                    return false;
-                                }
-                                var prev2 = body[body.length - 2];
-                                if (prev2.type == 'Keyword' && prev2.value == 'if') {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        case 'Keyword':
-                            return (prev.value != 'this');
-                        default:
-                            return false;
-                    }
-                }
                 if (allowRegex()) {
                     var regex = scanRegExp();
                     pushChunk(regex);
@@ -500,7 +499,7 @@ function parse(source, options) {
         return body;
     }
     return parseBody(null);
-};
+}
 
 function triplet(source, options) {
     options = options || {};
