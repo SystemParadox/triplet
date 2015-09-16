@@ -1,6 +1,7 @@
 var assert = require('chai').assert;
 var triplet = require('../');
 var fs = require('fs');
+var es = require('event-stream');
 
 function test(input, expected) {
     if (arguments.length < 2) {
@@ -250,6 +251,32 @@ describe('triplet', function () {
         error('(', '<stdin>:1:2: error: Unterminated block: missing )');
         error('[', '<stdin>:1:2: error: Unterminated block: missing ]');
         error('{', '<stdin>:1:2: error: Unterminated block: missing }');
+    });
+
+    it('should work with stream input', function (done) {
+        var input = 'var x = """\n    hello\n    world\n"""';
+        var expected = 'var x = \n\n\n"hello\\nworld\\n"';
+        var stream = es.readArray(input.split(''));
+        triplet(stream).pipe(es.wait(function (err, output) {
+            if (err) return done(err);
+            assert.equal(output.toString(), expected);
+            done();
+        }));
+    });
+
+    it('should work with buffer input', function () {
+        var input = 'var x = """\n    hello\n    world\n"""';
+        var expected = 'var x = \n\n\n"hello\\nworld\\n"';
+        var buffer = new Buffer(input);
+        var output = triplet(buffer);
+        assert.equal(output, expected);
+    });
+
+    it('should work with string input', function () {
+        var input = 'var x = """\n    hello\n    world\n"""';
+        var expected = 'var x = \n\n\n"hello\\nworld\\n"';
+        var output = triplet(input);
+        assert.equal(output, expected);
     });
 });
 

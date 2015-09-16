@@ -1,4 +1,5 @@
 var fs = require('fs');
+var through2 = require('through2');
 var Regex = require('./regex');
 
 function assert(condition, message) {
@@ -501,13 +502,7 @@ function parse(source, options) {
     return parseBody(null);
 }
 
-function triplet(source, options) {
-    options = options || {};
-
-    if (typeof source !== 'string' && !(source instanceof String)) {
-        source = String(source);
-    }
-
+function transform(source, options) {
     function postProcess(item) {
         var str = item.value;
         var ch = item.quote;
@@ -592,39 +587,54 @@ function triplet(source, options) {
     }
     pushOutput(ast);
     return output;
-};
+}
+
+function triplet(source, options) {
+    options = options || {};
+
+    if (Buffer.isBuffer(source)) {
+        source = String(source);
+    }
+
+    if (source.pipe) {
+        // assume a stream
+        var bufs = [];
+        var stream = through2(function (chunk, enc, cb) {
+            bufs.push(chunk);
+            cb();
+        }, function (cb) {
+            source = String(Buffer.concat(bufs));
+            var output = transform(source, options);
+            this.push(output);
+            cb();
+        });
+        source.pipe(stream);
+        return stream;
+    }
+
+    return transform(source, options);
+}
 
 exports = module.exports = triplet;
 exports.parse = parse;
 
 exports.cli = function cli(args) {
-    var content = '', options = {};
+    var options = {};
+
     function help() {
         console.error('Usage: triplet [input] [options]');
     }
 
-    cc = function () {
-        var output = triplet(content, options);
-        process.stdout.write(output);
-    };
     if (args[2] === '--help') {
         help();
         return;
     }
     if (args.length === 2) {
         // stdin
-        process.stdin.resume();
-        process.stdin.on('data', function (buf) {
-            content += buf.toString();
-        });
-        process.stdin.on('end', function () {
-            cc();
-        });
+        triplet(process.stdin, options).pipe(process.stdout);
     } else if (args.length === 3) {
-        fs.readFile(args[2], function (err, data) {
-            content = data.toString();
-            cc();
-        });
+        var stream = fs.createReadStream(args[2]);
+        triplet(stream, options).pipe(process.stdout);
     } else {
         help();
     }

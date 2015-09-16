@@ -37,6 +37,10 @@
   "license": "ISC",
   "devDependencies": {
     "blanket": "^1.1.7",
-    "chai": "^2.3.0"
+    "chai": "^2.3.0",
+    "event-stream": "^3.3.1"
+  },
+  "dependencies": {
+    "through2": "^2.0.0"
   }
 }

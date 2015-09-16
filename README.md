@@ -87,6 +87,7 @@ It can be used for any language, provided it conforms to the following rules:
 
 - Strings begin with single-quotes `'`, double-quotes `"` or backticks `\'`
 - Round brackets `()`, square brackets `[]` and curly braces `{}` must be paired correctly
+- Comments are delimited by `/* ... */` or `//`
 
 Use it standalone for plain Javascript, or as an input preprocessor for sweetjs, 6to5, babel, etc. You could even use it for C or Java!
 
@@ -139,6 +140,8 @@ x =
 triplet [file]
 ```
 
+- If file is '-', or not specified, reads from stdin.
+
 ## API
 
 ```
@@ -146,9 +149,11 @@ var triplet = require('triplet');
 triplet(input, options);
 ```
 
+- If input is a string or buffer, a string will be returned.
+- If input is a stream, a stream will be returned.
+
 ## TODO
 
-- Better stream support
 - Ensure sensible support for mixed tabs/spaces
 
 ## Contributing
