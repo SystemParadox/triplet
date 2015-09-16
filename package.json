@@ -1,6 +1,6 @@
 {
   "name": "triplet",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Source-source transformer/parser for multiline strings, here-documents, python-style triple-quoted strings.",
   "repository": {
     "type": "git",
