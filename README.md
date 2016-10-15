@@ -9,10 +9,10 @@ It can be used standalone or as an input preprocessor to another compiler (e.g. 
 
 ## Rationale
 
-ES6 template strings (delimited by single-backticks) are a great improvement, but still have some
-issues:
+JavaScript is lacking when it comes to raw string literals, especially for multi-line strings.
+ES6 template strings (delimited by single-backticks) are a great improvement, but still have some issues:
 
-- Backticks must be escaped, which is really painful for SQL
+- Any backticks in the text must still be escaped, which is really bad for SQL and Markdown
 - Indentation/whitespace is not correct
 - Sometimes you want a literal, without interpreting `${}` as template expressions
 
