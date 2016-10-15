@@ -371,13 +371,23 @@ function parse(source, options) {
 
         // lookback
         function allowRegex() {
+            var c = null;
+            if (chunk.length > 0) {
+                c = chunk[chunk.length - 1];
+                if ('(,=:[!&|?{};'.indexOf(c) > -1) {
+                    return true;
+                }
+                return false;
+            }
+
             if (body.length < 1) {
                 return true;
             }
+
             var prev = body[body.length - 1];
             switch (prev.type) {
                 case 'Chunk':
-                    var c = prev.raw[prev.raw.length - 1];
+                    c = prev.raw[prev.raw.length - 1];
                     if ('(,=:[!&|?{};'.indexOf(c) > -1) {
                         return true;
                     }

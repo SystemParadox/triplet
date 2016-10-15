@@ -232,6 +232,22 @@ describe('triplet', function () {
         test('"foo\\\r\nbar"', '"foo\\\r\nbar"');
     });
 
+    it('should parse division', function () {
+        test('1 / 3', '1 / 3');
+    });
+
+    it('should parse division without spaces', function () {
+        test('1/3', '1/3');
+    });
+
+    it('should parse division in a function', function () {
+        test('foo(1/3)', 'foo(1/3)');
+    });
+
+    it('should parse integer division without whitespace', function () {
+        test('foo(bar, 1/3)', 'foo(bar, 1/3)');
+    });
+
     it('should throw an error if a normal string contains a newline', function () {
         error('"foo\nbar', '<stdin>:1:6: error: Unterminated string');
     });
