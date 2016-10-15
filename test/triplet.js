@@ -3,11 +3,11 @@ var triplet = require('../');
 var fs = require('fs');
 var es = require('event-stream');
 
-function test(input, expected) {
+function test(input, expected, options) {
     if (arguments.length < 2) {
         expected = input;
     }
-    var output = triplet(input);
+    var output = triplet(input, options);
     inputLines = String(input).split('\n').length;
     outputLines = output.split('\n').length;
     //console.error('INN:', JSON.stringify(input));
@@ -287,7 +287,7 @@ describe('examples', function () {
         var inFile = dir + '/' + name + '.js';
         var input = fs.readFileSync(inFile);
         var expected = fs.readFileSync(dir + '/' + name + '.out').toString();
-        test(input, expected);
+        test(input, expected, { filename: 'examples/' + name + '.js' });
     }
     for (var i=0; i < examples.length; i++) {
         var index = examples[i].indexOf('.js');
