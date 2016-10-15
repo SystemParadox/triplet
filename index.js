@@ -550,9 +550,9 @@ function transform(source, options) {
         return ch + str + ch;
     }
 
-    //console.log('input', source);
+    //console.warn('input', source);
     var ast = parse(source, options);
-    //console.log('ast', util.inspect(ast, {depth: 20, colors: true}));
+    //console.warn('ast', util.inspect(ast, {depth: 20, colors: true}));
     var output = '';
     function pushOutput(body) {
         for (var i=0; i < body.length; i++) {
