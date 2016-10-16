@@ -8,17 +8,15 @@ function test(input, expected, options) {
         expected = input;
     }
     var output = triplet(input, options);
-    inputLines = String(input).split('\n').length;
-    outputLines = output.split('\n').length;
+    expectedLines = expected.split('\n');
+    outputLines = output.split('\n');
     //console.error('INN:', JSON.stringify(input));
     //console.error('OUT:', JSON.stringify(output));
     //console.error('EXP:', JSON.stringify(expected));
-    assert.equal(outputLines, inputLines, 'output line count differs');
-    if (true) {
-        assert.deepEqual(output.split('\n'), expected.split('\n'));
-    } else {
-        assert.equal(output, expected);
-    }
+    expectedLines.forEach(function (line, i) {
+        assert.equal(outputLines[i], line, 'line ' + (i + 1));
+    });
+    assert.equal(outputLines.length, expectedLines.length, 'line count');
 }
 
 function error(input, expected) {
