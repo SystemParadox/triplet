@@ -296,24 +296,23 @@ describe('triplet', function () {
 
 describe('examples', function () {
     var dir = __dirname + '/../examples';
-    var examples = fs.readdirSync(dir);
-    function testFile(name) {
-        var inFile = dir + '/' + name + '.js';
-        var input = fs.readFileSync(inFile);
-        var expected = fs.readFileSync(dir + '/' + name + '.out').toString();
-        test(input, expected, { filename: 'examples/' + name + '.js' });
-    }
-    for (var i=0; i < examples.length; i++) {
-        var index = examples[i].indexOf('.js');
+    var files = fs.readdirSync(dir);
+    files.forEach(function (file) {
+        var index = file.indexOf('.js');
         if (index < 0) {
-            continue;
+            return;
         }
-        var name = examples[i].substring(0, index);
-        //if (name != 'export') continue;
+        var name = file.substring(0, index);
         if (fs.existsSync(dir + '/' + name + '.out')) {
-            it(examples[i], testFile.bind(null, name));
+            it(file, function () {
+                this.timeout(60000);
+                var inFile = dir + '/' + name + '.js';
+                var input = fs.readFileSync(inFile);
+                var expected = fs.readFileSync(dir + '/' + name + '.out').toString();
+                test(input, expected, { filename: 'examples/' + name + '.js' });
+            });
         } else {
-            it(examples[i]);
+            it(file);
         }
-    }
+    });
 });
