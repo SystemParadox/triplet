@@ -117,7 +117,7 @@ A huge thanks to the mozilla/sweet.js folks for their excellent work on this.
 
 ## JSX support
 
-*New in version 1.1.0*
+*New in version 1.2.0*
 
 JSX support has also been added, but must be explicitly requested with the `--jsx` command line option (or `jsx: true` for API usage).
 
