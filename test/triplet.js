@@ -246,6 +246,10 @@ describe('triplet', function () {
         test('foo(bar, 1/3)', 'foo(bar, 1/3)');
     });
 
+    it('should not detect keywords in identifiers', function () {
+        test('foo(noreturn / 2)', 'foo(noreturn / 2)');
+    });
+
     it('should throw an error if a normal string contains a newline', function () {
         error('"foo\nbar', '<stdin>:1:6: error: Unterminated string');
     });

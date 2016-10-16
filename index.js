@@ -478,7 +478,7 @@ function parse(source, options) {
                 }
             } else {
                 var keyword = false;
-                if (isIdentifierPart(ch)) {
+                if (isIdentifierPart(ch) && (index == 0 || ! isIdentifierPart(source[index - 1]))) {
                     keyword = scanKeyword();
                 }
                 if (keyword) {
