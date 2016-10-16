@@ -10,11 +10,15 @@ function assert(condition, message) {
 
 var Messages = {
     UnexpectedEOS: 'Unexpected end of input',
+    UnexpectedToken: 'Unexpected token: ',
     InvalidRegExp: 'Invalid regular expression',
     UnterminatedComment: 'Unterminated block comment',
     UnterminatedString: 'Unterminated string',
     UnterminatedRegExp: 'Invalid regular expression: missing /',
     UnterminatedBlock: 'Unterminated block: missing ',
+    InvalidJSXIdentifier: 'Invalid JSX identifier',
+    MissingJSXClosing: 'Missing closing tag for JSX element: ',
+    WrongJSXClosingTag: 'Wrong closing tag for JSX element: ',
 };
 
 function parse(source, options) {
@@ -35,6 +39,24 @@ function parse(source, options) {
         error.column = column;
 
         throw error;
+    }
+
+    function expect(str) {
+        var startIndex = index;
+        var x = 0;
+        while (index < length) {
+            var ch = source[index];
+            if (ch == str[x]) {
+                index++;
+                x = index - startIndex;
+                if (x >= str.length) {
+                    return;
+                }
+            } else {
+                throwError(Messages.UnexpectedToken + JSON.stringify(ch) + ' (expected: ' + JSON.stringify(str[x]) + ')');
+            }
+        }
+        throwError(Messages.UnexpectedEOS + ': ' + str);
     }
 
     // 7.2 White Space
@@ -81,6 +103,20 @@ function parse(source, options) {
         }
     }
 
+    function scanLineTerminator() {
+        var ch = source[index];
+        var raw = '';
+        if (ch === '\r' && source[index + 1] === '\n') {
+            raw += '\r';
+            ++index;
+        }
+        raw += '\n';
+        ++lineNumber;
+        ++index;
+        lineStart = index;
+        return raw;
+    }
+
     function skipComment() {
         var ch;
         var blockComment = false;
@@ -91,29 +127,16 @@ function parse(source, options) {
             ch = source[index];
 
             if (lineComment) {
-                ch = source[index++];
                 if (isLineTerminator(ch)) {
                     lineComment = false;
-                    if (ch === '\r' && source[index] === '\n') {
-                        ++index;
-                        raw += '\r';
-                    }
-                    raw += '\n';
-                    ++lineNumber;
-                    lineStart = index;
+                    raw += scanLineTerminator();
                 } else {
                     raw += ch;
+                    ++index;
                 }
             } else if (blockComment) {
                 if (isLineTerminator(ch)) {
-                    if (ch === '\r' && source[index + 1] === '\n') {
-                        raw += '\r';
-                        ++index;
-                    }
-                    raw += '\n';
-                    ++lineNumber;
-                    ++index;
-                    lineStart = index;
+                    raw += scanLineTerminator();
                     if (index >= length) {
                         throwError(Messages.UnterminatedComment);
                     }
@@ -344,6 +367,124 @@ function parse(source, options) {
         };
     }
 
+    function scanJSXIdentifier() {
+        var ch;
+        var value = '';
+        while (index < length) {
+            ch = source[index];
+            if (ch == '.' || isIdentifierPart(ch)) {
+                value += ch;
+                index++;
+            } else {
+                break;
+            }
+        }
+        if (! value) {
+            throwError(Messages.InvalidJSXIdentifier);
+        }
+        return value;
+    }
+
+    function parseJSX() {
+        var ch, name;
+
+        ch = source[index++];
+        assert(ch === '<', "JSX must start with a '<'");
+
+        name = scanJSXIdentifier();
+
+        var chunk = ch + name;
+        var body = [];
+        var inStart = true;
+        var closed = false;
+
+        while (index < length) {
+            ch = source[index];
+
+            if (ch == '{') {
+                index++;
+                if (chunk) {
+                    body.push({
+                        type: 'Chunk',
+                        raw: chunk,
+                    });
+                    chunk = '';
+                }
+                body.push({
+                    type: 'Block',
+                    startCh: '{',
+                    endCh: '}',
+                    body: parseBody('}'),
+                });
+            } else if ((ch === '\'' || ch === '"') && inStart) {
+                var startLine = lineNumber;
+                var str = scanStringLiteral();
+                if (chunk) {
+                    body.push({
+                        type: 'Chunk',
+                        raw: chunk,
+                    });
+                    chunk = '';
+                }
+                body.push(str);
+            } else if (ch == '>' && inStart) {
+                inStart = false;
+                chunk += ch;
+                index++;
+            } else if (ch == '/' && inStart) {
+                // self-closing
+                expect('/>');
+                chunk += '/>';
+                inStart = false;
+                closed = true;
+                break;
+            } else if (ch == '<') {
+                var ch2 = source[index + 1];
+                if (ch2 == '/') {
+                    // closing
+                    index += 2;
+                    var closeName = scanJSXIdentifier();
+                    if (closeName != name) {
+                        throwError(Messages.WrongJSXClosingTag + name);
+                    }
+                    expect('>');
+                    chunk += '</' + name + '>';
+                    closed = true;
+                    break;
+                } else {
+                    // nested tag
+                    if (chunk) {
+                        body.push({
+                            type: 'Chunk',
+                            raw: chunk,
+                        });
+                        chunk = '';
+                    }
+                    body.push(parseJSX());
+                }
+            } else if (isLineTerminator(ch)) {
+                chunk += scanLineTerminator();
+            } else {
+                chunk += ch;
+                index++;
+            }
+        }
+        if (chunk) {
+            body.push({
+                type: 'Chunk',
+                raw: chunk,
+            });
+        }
+        if (! closed) {
+            throwError(Messages.MissingJSXClosing + name);
+        }
+        return {
+            type: 'JSX',
+            name: name,
+            body: body,
+        };
+    }
+
     var last = '';
 
     function parseBody(end) {
@@ -476,6 +617,13 @@ function parse(source, options) {
                     chunk += ch;
                     ++index;
                 }
+            } else if (ch === '<' && options.jsx) {
+                if (allowRegex()) {
+                    pushChunk(parseJSX());
+                } else {
+                    chunk += ch;
+                    ++index;
+                }
             } else {
                 var keyword = false;
                 if (isIdentifierPart(ch) && (index == 0 || ! isIdentifierPart(source[index - 1]))) {
@@ -582,6 +730,9 @@ function transform(source, options) {
                     pushOutput(item.body);
                     output += item.endCh;
                     break;
+                case 'JSX':
+                    pushOutput(item.body);
+                    break;
                 case 'StringLiteral':
                     output += postProcess(item);
                     break;
@@ -632,20 +783,46 @@ exports.cli = function cli(args) {
     var options = {};
 
     function help() {
-        console.error('Usage: triplet [input] [options]');
+        console.error('Usage: ');
+        console.error('  triplet [input] [options]');
+        console.error('Options:');
+        console.error('  --filename [filename]  Set input filename (for use in error messages)');
+        console.error('  --jsx                  Enable JSX support');
+        console.error('  --version              Display version number');
+        console.error('  --help                 Display help and usage');
     }
 
-    if (args[2] === '--help') {
-        help();
-        return;
+    var inFile = null;
+
+    for (var i=2; i < args.length; i++) {
+        if (args[i] === '--help') {
+            help();
+            return;
+        } else if (args[i] === '--version') {
+            console.log('triplet v' + require('./package.json').version);
+            return;
+        } else if (args[i] === '--filename') {
+            if (! args[i+1]) {
+                console.error('--filename requires one argument');
+                return;
+            }
+            options.filename = args[i+1];
+            i++;
+        } else if (args[i] === '--jsx') {
+            options.jsx = true;
+        } else {
+            inFile = args[i];
+        }
     }
-    if (args.length === 2) {
+
+    if (inFile === null) {
         // stdin
         triplet(process.stdin, options).pipe(process.stdout);
-    } else if (args.length === 3) {
-        var stream = fs.createReadStream(args[2]);
-        triplet(stream, options).pipe(process.stdout);
     } else {
-        help();
+        var stream = fs.createReadStream(inFile);
+        if (! options.filename) {
+            options.filename = inFile;
+        }
+        triplet(stream, options).pipe(process.stdout);
     }
 };

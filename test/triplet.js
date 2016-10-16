@@ -7,6 +7,8 @@ function test(input, expected, options) {
     if (arguments.length < 2) {
         expected = input;
     }
+    options = options || {};
+    options.jsx = true;
     var output = triplet(input, options);
     expectedLines = expected.split('\n');
     outputLines = output.split('\n');
@@ -20,9 +22,12 @@ function test(input, expected, options) {
 }
 
 function error(input, expected) {
+    var options = {
+        jsx: true,
+    };
     var err = null;
     try {
-        triplet(input);
+        triplet(input, options);
     } catch (e) {
         err = e;
     }
@@ -248,6 +253,68 @@ describe('triplet', function () {
 
     it('should not detect keywords in identifiers', function () {
         test('foo(noreturn / 2)', 'foo(noreturn / 2)');
+    });
+
+    it('should parse JSX tags', function () {
+        test('<Foo></Foo>', '<Foo></Foo>');
+    });
+
+    it('should parse self-closing JSX', function () {
+        test('<Foo />', '<Foo />');
+    });
+
+    it('should parse JSX tags with content', function () {
+        test('<Foo>hello</Foo>', '<Foo>hello</Foo>');
+    });
+
+    it('should parse JSX keys', function () {
+        test('<a href="http://example.com" />', '<a href="http://example.com" />');
+        test("<a href='http://example.com' />", "<a href='http://example.com' />");
+    });
+
+    it('should ignore quotes inside JSX', function () {
+        test('<span>"</span>', '<span>"</span>');
+        test("<span>'</span>", "<span>'</span>");
+    });
+
+    it('should parse JSX expressions', function () {
+        test('<Foo bar={ """baz""" } />', '<Foo bar={ "baz" } />');
+    });
+
+    it('should parse JSX tags with literal content', function () {
+        test('<Foo>"""hello"""</Foo>', '<Foo>"""hello"""</Foo>');
+    });
+
+    it('should parse JSX tags with dot-identifiers', function () {
+        test('<foo.Bar />', '<foo.Bar />');
+    });
+
+    it('should parse nested JSX tags', function () {
+        test('<Foo><Bar><Baz /></Bar></Foo>', '<Foo><Bar><Baz /></Bar></Foo>');
+    });
+
+    it('should ignore block comments in JSX', function () {
+        test('<Foo>/*</Foo>', '<Foo>/*</Foo>');
+    });
+
+    it('should ignore line comments in JSX', function () {
+        test('<Foo>// hello</Foo>', '<Foo>// hello</Foo>');
+    });
+
+    it('should throw an error if JSX tag is not closed', function () {
+        error('<Foo>', '<stdin>:1:6: error: Missing closing tag for JSX element: Foo');
+    });
+
+    it('should throw an error if JSX tag is not closed properly', function () {
+        error('<Foo /*>', '<stdin>:1:7: error: Unexpected token: "*" (expected: ">")');
+    });
+
+    it('should throw an error if JSX tag is closed with a different identifier', function () {
+        error('<Foo></Bar>', '<stdin>:1:11: error: Wrong closing tag for JSX element: Foo');
+    });
+
+    it('should give correct line numbers for JSX', function () {
+        error('<Foo>\n<Bar />\n</Foo>\n"', '<stdin>:4:2: error: Unterminated string');
     });
 
     it('should throw an error if a normal string contains a newline', function () {
