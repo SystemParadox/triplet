@@ -40,12 +40,12 @@ function error(input, expected) {
 
 describe('triplet', function () {
     it('should return the original content', function () {
-        test('hello', 'hello');
+        test('hello');
     });
 
     it('should return existing strings unmodified', function () {
-        test('"hello"', '"hello"');
-        test("'hello'", "'hello'");
+        test('"hello"');
+        test("'hello'");
     });
 
     it('should replace triple-quoted strings', function () {
@@ -111,11 +111,11 @@ describe('triplet', function () {
     });
 
     it('should not strip backslash-escapes', function () {
-        test('"a\\tb\\\\c"', '"a\\tb\\\\c"');
+        test('"a\\tb\\\\c"');
     });
 
     it('should not strip newlines generated from escape characters in normal strings', function () {
-        test('"hello\\n"', '"hello\\n"');
+        test('"hello\\n"');
     });
 
     it('should not strip newlines generated from escape characters', function () {
@@ -123,19 +123,19 @@ describe('triplet', function () {
     });
 
     it('should preserve text surrounding long comments', function () {
-        test('a/* x */z', 'a/* x */z');
+        test('a/* x */z');
     });
 
     it('should preserve text surrounding short comments', function () {
-        test('a// x\nz', 'a// x\nz');
+        test('a// x\nz');
     });
 
     it('should ignore quotes inside long comments', function () {
-        test('/* " */', '/* " */');
+        test('/* " */');
     });
 
     it('should ignore quotes inside short comments', function () {
-        test('// "', '// "');
+        test('// "');
     });
 
     it('should ignore quotes inside regex', function () {
@@ -150,6 +150,7 @@ describe('triplet', function () {
         test('replace(/a/g.test(), "x")');
         test('replace(/a///inline """foo""" comment\n, "x")');
         test('return /"""/');
+        test('throw /"""/');
         test('if (true) /"""/');
     });
 
@@ -168,7 +169,7 @@ describe('triplet', function () {
     });
 
     it('should not remove divide symbols', function () {
-        test('a / b', 'a / b');
+        test('a / b');
     });
 
     it('should preserve a trailing newline', function () {
@@ -176,7 +177,7 @@ describe('triplet', function () {
     });
 
     it('should preserve CRLF', function () {
-        test('\r\n', '\r\n');
+        test('\r\n');
     });
 
     it('should convert CRLF to CR inside comments', function () {
@@ -184,39 +185,39 @@ describe('triplet', function () {
     });
 
     it('should parse line comments', function () {
-        test('// foo', '// foo');
+        test('// foo');
     });
 
     it('should parse line comments with CR endings', function () {
-        test('// foo\n', '// foo\n');
+        test('// foo\n');
     });
 
     it('should parse line comments with CRLF endings', function () {
-        test('// foo\r\n', '// foo\r\n');
+        test('// foo\r\n');
     });
 
     it('should parse block comments', function () {
-        test('/* foo */', '/* foo */');
+        test('/* foo */');
     });
 
     it('should parse block comments with CR endings', function () {
-        test('/* foo\n*/', '/* foo\n*/');
+        test('/* foo\n*/');
     });
 
     it('should parse block comments with CRLF endings', function () {
-        test('/* foo\r\n*/', '/* foo\r\n*/');
+        test('/* foo\r\n*/');
     });
 
     it('should parse es6 template strings (backticks)', function () {
-        test('`foo`', '`foo`');
+        test('`foo`');
     });
 
     it('should preserve exact whitespace in single backticks (es6 compatibility)', function () {
-        test('`    foo\n    bar\n`', '`    foo\n    bar\n`');
+        test('`    foo\n    bar\n`');
     });
 
     it('should preserve CRLF in single backticks (es6 compatibility)', function () {
-        test('`    foo\r\n    bar\r\n`', '`    foo\r\n    bar\r\n`');
+        test('`    foo\r\n    bar\r\n`');
     });
 
     it('should not escape newlines within backticks', function () {
@@ -228,53 +229,53 @@ describe('triplet', function () {
     });
 
     it('should preserve backslash-escaped newlines', function () {
-        test('"foo\\\nbar"', '"foo\\\nbar"');
+        test('"foo\\\nbar"');
     });
 
     it('should preserve backslash-escaped CRLF newlines', function () {
-        test('"foo\\\r\nbar"', '"foo\\\r\nbar"');
+        test('"foo\\\r\nbar"');
     });
 
     it('should parse division', function () {
-        test('1 / 3', '1 / 3');
+        test('1 / 3');
     });
 
     it('should parse division without spaces', function () {
-        test('1/3', '1/3');
+        test('1/3');
     });
 
     it('should parse division in a function', function () {
-        test('foo(1/3)', 'foo(1/3)');
+        test('foo(1/3)');
     });
 
     it('should parse integer division without whitespace', function () {
-        test('foo(bar, 1/3)', 'foo(bar, 1/3)');
+        test('foo(bar, 1/3)');
     });
 
     it('should not detect keywords in identifiers', function () {
-        test('foo(noreturn / 2)', 'foo(noreturn / 2)');
+        test('foo(noreturn / 2)');
     });
 
     it('should parse JSX tags', function () {
-        test('<Foo></Foo>', '<Foo></Foo>');
+        test('<Foo></Foo>');
     });
 
     it('should parse self-closing JSX', function () {
-        test('<Foo />', '<Foo />');
+        test('<Foo />');
     });
 
     it('should parse JSX tags with content', function () {
-        test('<Foo>hello</Foo>', '<Foo>hello</Foo>');
+        test('<Foo>hello</Foo>');
     });
 
     it('should parse JSX keys', function () {
-        test('<a href="http://example.com" />', '<a href="http://example.com" />');
-        test("<a href='http://example.com' />", "<a href='http://example.com' />");
+        test('<a href="http://example.com" />');
+        test("<a href='http://example.com' />");
     });
 
     it('should ignore quotes inside JSX', function () {
-        test('<span>"</span>', '<span>"</span>');
-        test("<span>'</span>", "<span>'</span>");
+        test('<span>"</span>');
+        test("<span>'</span>");
     });
 
     it('should parse JSX expressions', function () {
@@ -282,23 +283,33 @@ describe('triplet', function () {
     });
 
     it('should parse JSX tags with literal content', function () {
-        test('<Foo>"""hello"""</Foo>', '<Foo>"""hello"""</Foo>');
+        test('<Foo>"""hello"""</Foo>');
     });
 
     it('should parse JSX tags with dot-identifiers', function () {
-        test('<foo.Bar />', '<foo.Bar />');
+        test('<foo.Bar />');
     });
 
     it('should parse nested JSX tags', function () {
-        test('<Foo><Bar><Baz /></Bar></Foo>', '<Foo><Bar><Baz /></Bar></Foo>');
+        test('<Foo><Bar><Baz /></Bar></Foo>');
+    });
+
+    it('should parse JSX in arrow functions', function () {
+        test('data.map(x => <Foo />)');
+        test('data.map(x => <Foo>bar</Foo>)');
+        test('data.map(x => <Foo><Bar><Baz /></Bar></Foo>)');
+    });
+
+    it('should parse strings in arrow functions', function () {
+        test('data.map(x => """hello""")', 'data.map(x => "hello")');
     });
 
     it('should ignore block comments in JSX', function () {
-        test('<Foo>/*</Foo>', '<Foo>/*</Foo>');
+        test('<Foo>/*</Foo>');
     });
 
     it('should ignore line comments in JSX', function () {
-        test('<Foo>// hello</Foo>', '<Foo>// hello</Foo>');
+        test('<Foo>// hello</Foo>');
     });
 
     it('should throw an error if JSX tag is not closed', function () {

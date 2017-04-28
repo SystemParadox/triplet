@@ -101,10 +101,10 @@ The other 1% is stupid and results in runtime errors anyway.
 
 When a `/` is encountered, the parser will look back to determine whether it should be parsed as a regex or not:
 
-- If the previous (non-whitespace) character is one of `(,=:[!&|?{;` then it is a regex
-- If the previous token is `return` then it is a regex
-- If it is a `)`, look back to the token before the matching `(`. If it is `if` then regex
-- If it is a `}`, assume a regex
+- If the previous (non-whitespace) character is one of `(,=:[!&|?{;`, parse a regex
+- If the previous token is a keyword like `return` or `throw` (but not `this`), parse a regex
+- If the previous token is `)`, look back to the token before the matching `(`. If it is `if`, parse a regex
+- If the previous token is `}`, assume a regex
 
 This deviates from the ECMAScript specification for the following cases:
 
